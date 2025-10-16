@@ -1028,6 +1028,14 @@
                     if (barChartInstance) {
                         barChartInstance.destroy();
                     }
+
+                    // Find the maximum value for the x-axis to set the scale range
+                    let maxValue = 0;
+                    if (statsToDisplay.length > 0) {
+                        const allCounts = statsToDisplay.flatMap(s => [s.speakerCount, s.taCount]);
+                        maxValue = Math.max(...allCounts);
+                    }
+
                     const barCtx = document.getElementById('barChart').getContext('2d');
                     barChartInstance = new Chart(barCtx, {
                         type: 'bar',
@@ -1051,19 +1059,21 @@
                             ]
                         },
                         options: {
+                            indexAxis: 'y', // This makes it horizontal
                             responsive: true,
                             scales: {
-                                y: {
+                                x: { // Swapped from y to x
                                     beginAtZero: true,
                                     ticks: {
-                                        stepSize: 1 // Ensure y-axis has integer steps
-                                    }
+                                        stepSize: 1 // Ensure x-axis has integer steps
+                                    },
+                                    max: maxValue + 1 // Add 1 for padding
                                 }
                             },
                             plugins: {
                                 datalabels: {
                                     anchor: 'end',
-                                    align: 'top',
+                                    align: 'right', // Adjusted for horizontal bars
                                     formatter: (value) => value > 0 ? value : '', // Don't show '0' labels
                                     color: '#333',
                                     font: {
