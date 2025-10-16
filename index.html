@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>西門實小晨光天文班表查詢系統</title>
+    <!-- Introduce Chart.js 和 Datalabels plugins -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <style>
+        /* ==================== 1. CSS style ==================== */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f4f9;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            background-color: #fff;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        /* --- Tab navigations --- */
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #ccc;
+        }
+
+        .tab-button {
+            padding: 15px 25px;
+            cursor: pointer;
+            border: none;
+            background-color: transparent;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .tab-button:hover {
+            background-color: #e9e9e9;
+        }
+
+        .tab-button.active {
+            color: #007bff;
+            border-bottom: 3px solid #007bff;
+        }
+
+        /* --- Left-Right layout --- */
+        .tab-content {
+            display: none; /* Hide by default */
+            padding: 20px;
+        }
+
+        .tab-content.active {
+            display: block; /* 顯示目前啟用的分頁內容 */
+        }
+
+        .split-view {
+            display: flex;
+            min-height: 500px; /* 最小高度，避免內容過少時頁面塌陷 */
+        }
+
+        .left-column {
+            flex: 1; /* 左側佔 1 份 */
+            padding-right: 20px;
+            border-right: 1px solid #eee;
+            max-width: 100px; /* 限制左欄最大寬度 */
+            min-width: 20px; /* 新增：確保最小寬度，防止被壓縮 */
+            position: relative; /* For positioning the button */
+            transition: all 0.3s ease; /* Smooth transition for collapse */
+        }
+
+        .left-column.collapsed {
+            flex: 0;
+            min-width: 0;
+            width: 0;
+            padding-right: 0;
+            border-right: none;
+        }
+
+        .left-column.collapsed .left-column-content {
+            display: none;
+        }
+
+        .toggle-btn {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 24px;
+            height: 24px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 24px;
+            text-align: center;
+            z-index: 10;
+        }
+
+        .toggle-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .right-column {
+            flex: 3; /* 右側佔 3 份 */
+            padding-left: 20px;
+            overflow-x: auto; /* 新增：當內容過寬時，顯示水平滾動條 */
+        }
+
+        /* --- 選單樣式 --- */
+        .select-label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        /* 多選選單 */
+        .multi-select {
+            width: 100%;
+            min-height: 200px;
+            border: 1px solid #ccc;
+            padding: 5px;
+        }
+
+        /* --- 表格樣式 --- */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+
+        .data-table th {
+            background-color: #4A5568; /* 深灰色底 */
+            color: #FFFFFF; /* 白色字 */
+            text-align: center;
+        }
+
+                /* 針對班級欄位（第一欄）進行樣式設定 */
+                .data-table tbody td:first-child {
+                    background-color: #4A5568; /* 深灰色底 */
+                    color: #FFFFFF; /* 白色字 */
+                    font-weight: bold; /* 加粗字體 */
+                }
+
+                /* --- 姓名高亮樣式 --- */
+                .name-highlight {
+                    cursor: pointer;
+                    transition: background-color 0.2s ease-in-out;
+                    border-radius: 3px;
+                    padding: 0 2px;
+                }
+                .name-highlight.highlighted {
+                    background-color: #FFD700; /* 金黃色高亮 */
+                    color: #000;
+                }
+            </style>
+        </head>
+        <body>
+
+        <div class="container">
+
+            <div class="tabs">
+                <button class="tab-button active" onclick="openTab(event, 'ClassSchedule')">班級課表</button>
+                <button class="tab-button" onclick="openTab(event, 'PersonalSchedule')">個人課表</button>
+                <button class="tab-button" onclick="openTab(event, 'Statistics')">統計圖</button>
+            </div>
+
+            <div id="ClassSchedule" class="tab-content active">
+                <div class="split-view">
+                    <div class="left-column">
+                        <button class="toggle-btn" onclick="toggleLeftColumn(event)">-</button>
+                        <div class="left-column-content">
+                            <label for="class-select" class="select-label">選擇班級 (可多選):</label>
+                            <select id="class-select" class="multi-select" multiple size="10" onchange="updateClassSchedule()">
+                            </select>
+                        </div>
+                    </div>
+                    <div class="right-column">
+                        <h3>班級課表</h3>
+                        <table class="data-table" id="class-schedule-table">
+                            <thead>
+                                <tr>
+                                    <th>班級</th>
+                                    <th>老師</th>
+                                    <th>日期</th>
+                                    <th>版本</th>
+                                    <th>學員人數</th>
+                                </tr>
+                            </thead>
+                            <tbody id="class-schedule-body">
+                                <tr><td colspan="5">請在左側選擇班級以顯示課表。</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="PersonalSchedule" class="tab-content">
+                <div class="split-view">
+                    <div class="left-column">
+                        <button class="toggle-btn" onclick="toggleLeftColumn(event)">-</button>
+                        <div class="left-column-content">
+                            <label for="person-select" class="select-label">選擇助教:</label>
+                            <select id="person-select" class="multi-select" multiple size="10" onchange="updatePersonalSchedule()">
+                            </select>
+                        </div>
+                    </div>
+                    <div class="right-column">
+                        <h3>個人課表</h3>
+                        <table class="data-table" id="personal-schedule-table">
+                            <thead>
+                                <tr>
+                                    <th>日期</th>
+                                    <th>班級</th>
+                                    <th>單元</th>
+                                    <th>角色</th>
+                                </tr>
+                            </thead>
+                            <tbody id="personal-schedule-body">
+                                <tr><td colspan="4">請在左側選擇人名以顯示課表。</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="Statistics" class="tab-content">
+                <div class="split-view">
+                    <div class="left-column">
+                        <button class="toggle-btn" onclick="toggleLeftColumn(event)">-</button>
+                        <div class="left-column-content">
+                            <label for="stats-select" class="select-label">統計篩選:</label>
+                            <select id="stats-select" class="multi-select" multiple size="10" onchange="generateStatistics()">
+                            </select>
+                        </div>
+                    </div>
+                    <div class="right-column">
+                        <h3>統計圖表</h3>
+                        <div id="chart-area">
+                            <div id="bar-chart-container">
+                                <canvas id="barChart"></canvas>
+                            </div>
+                            <div id="pie-chart-container" style="margin-top: 20px; max-width: 400px;">
+                                <canvas id="pieChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <script>
+            // ==================== 2. JSON 資料 ==================== 
+            // 班級與老師對應表
+            const teacherDB = [
+              {"101": "許媖華"},
+              {"102": "佳宜"},
+              {"201": "歐伶礽"},
+              {"202": "安淇"},
+              {"301": "淑莞"},
+              {"302": "伶珍"},
+              {"401": "麗萍"},
+              {"402": "郁雯"},
+              {"501": "曾玉婷"},
+              {"502": "鄧佳琳"},
+              {"601": "盧仕純"},
+              {"602": "蔡銘益"},
+              {"603": "楊淳棻"}
+            ];
+
+            // 課程日期與助教對應表
+            // 
+            // 客製化顏色說明：
+            // 你可以在任何主講或助教的姓名後面，加上斜線與顏色來改變它在課表上的顯示顏色。
+            // 這對於標示特定狀態（例如：新人、代理、觀察）非常有用。
+            // 
+            // 格式: "姓名/顏色"
+            // 
+            // 顏色可以是英文單字或十六進位色碼。以下為五種常用顏色範例：
+            //   - "姓名/red"      (紅色)
+            //   - "姓名/blue"     (藍色)
+            //   - "姓名/green"    (綠色)
+            //   - "姓名/orange"   (橘色)
+            //   - "姓名/purple"   (紫色)
+            // 
+            const classesDB = {
+                "2025/09/05": {
+                    "601/U4": {
+                        "芊芊": ["瑞夫", "玉伶"]      
+                    },
+                    "602/U2": {
+                        "夢萍": ["小雨", "小棻"]
+                    },
+                    "603/U3": {
+                        "英淳": ["美靜", "傑哥"]
+                    }
+                },
+
+                "2025/09/12": {
+                    "601/U3": {
+                        "英淳": ["美靜", "芊芊"]
+                    },
+                    "602/U1": {
+                        "小雨": ["珍華", "夢萍", "傑哥"]
+                    },
+                    "603/U2": {
+                        "方盈": ["健庭", "玉伶"]
+                    }
+                },
+
+                "2025/09/17": {
+                    "601/U1": {
+                        "小雨": ["珍華", "玉伶"]
+                    },
+                    "602/U3": {
+                        "美靜": ["夢萍", "瑋瑜", "小棻"]
+                    },
+                    "603/U4": {
+                        "芊芊": ["方盈", "傑哥"]
+                    }
+                },
+
+                "2025/09/25": {
+                    "601/U2": {
+                        "健庭": ["瑋瑜", "英淳"]
+                    },
+                    "602/U4": {
+                        "瑞夫": ["小雨", "美靜"]
+                    },
+                    "603/U1": {
+                        "傑哥": ["方盈", "玉伶"]
+                    }
+                },
+
+                "2025/09/24": {
+                    "501/U1": {
+                        "小雨": ["玉伶", "珍華"]
+                    },
+                    "502/U3": {
+                        "美靜": ["傑哥", "瑋瑜"]
+                    }
+                },
+
+                "2025/10/08": {
+                    "501/U2": {
+                        "方盈": ["瑋瑜", "瑞夫", "健庭"]
+                    },
+                    "502/U4": {
+                        "芊芊": ["玉伶", "小棻"]
+                    }
+                },
+
+                "2025/10/15": {
+                    "501/U3": {
+                        "英淳": ["方盈", "美靜", "賢姐/red"]
+                    },
+                    "502/U1": {
+                        "珍華": ["傑哥", "小棻", "小雨"]
+                    }
+                },
+
+                "2025/10/17": {
+                    "501/U4": {
+                        "瑞夫": ["瑋瑜", "英淳", "小南/red"]
+                    },
+                    "502/U2": {
+                        "健庭": ["小雨", "夢萍"]
+                    }
+                },
+
+                "2025/10/02": {
+                    "401/U3": {
+                        "英淳": ["傑哥", "美靜"]
+                    },
+                    "402/U2": {
+                        "夢萍": ["方盈", "瑋瑜", "健庭"]
+                    }
+                },
+
+                "2025/10/09": {
+                    "401/U2": {
+                        "方盈": ["小雨", "玉伶"]
+                    },
+                    "402/U4": {
+                        "芊芊": ["瑋瑜", "健庭"]
+                    }
+                },
+
+                "2025/10/16": {
+                    "401/U4": {
+                        "芊芊": ["小棻", "健庭"]
+                    },
+                    "402/U1": {
+                        "小雨": ["夢萍", "瑋瑜", "怡婷/red"]
+                    }
+                },
+
+                "2025/10/23": {
+                    "401/U1": {
+                        "傑哥": ["方盈", "健庭"]
+                    },
+                    "402/U3": {
+                        "美靜": ["小棻", "瑋瑜", "賢姐/red"]
+                    }
+                },
+
+                "2025/11/07": {
+                    "301/U1": {
+                        "小雨": ["珍華", "芊芊"]
+                    },
+                    "302/U4": {
+                        "瑞夫": ["小棻", "健庭", "小南/red"]
+                    }
+                },
+
+                "2025/11/13": {
+                    "301/U4": {
+                        "芊芊": ["瑋瑜", "玉伶", "賢姐/red"]
+                    },
+                    "302/U3": {
+                        "美靜": ["傑哥", "小棻", "怡婷/red"]
+                    }
+                },
+
+                "2025/11/20": {
+                    "301/U3": {
+                        "英淳": ["小雨", "芊芊", "怡婷/red"]
+                    },
+                    "302/U2": {
+                        "夢萍": ["美靜", "玉伶", "賢姐/red"]
+                    }
+                },
+
+                "2025/11/21": {
+                    "301/U2": {
+                        "健庭": ["方盈", "芊芊"]
+                    },
+                    "302/U1": {
+                        "珍華": ["英淳", "小南/red"]
+                    }
+                },
+
+                "2025/12/18": {
+                    "201/U3": {
+                        "美靜": ["小棻", "玉伶", "夢萍"]
+                    },
+                    "202/U1": {
+                        "傑哥": ["瑋瑜", "英淳", "怡婷/red"]
+                    }
+                },
+
+                "2025/12/19": {
+                    "201/U2": {
+                        "健庭": ["瑋瑜", "珍華", "小南/red"]
+                    },
+                    "202/U4": {
+                        "瑞夫": ["英淳", "小雨"]
+                    }
+                },
+                "2025/12/24": {
+                    "201/U1": {
+                        "珍華": ["方盈", "芊芊", "賢姐/red"]
+                    },
+                    "202/U3": {
+                        "英淳": ["小棻", "小雨", "瑞夫"]
+                    }
+                },
+
+                "2025/12/26": {
+                    "201/U4": {
+                        "瑞夫": ["珍華", "健庭", "賢姐/red"]
+                    },
+                    "202/U2": {
+                        "夢萍": ["玉伶", "英淳", "怡婷/red"]
+                    }
+                },
+
+                "2025/12/04": {
+                    "101/U4": {
+                        "芊芊": ["小棻", "玉伶", "賢姐/red"]
+                    },
+                    "102/U2": {
+                        "夢萍": ["傑哥", "美靜", "怡婷/red"]
+                    }
+                },
+
+                "2025/12/10": {
+                    "101/U1": {
+                        "傑哥": ["珍華", "小雨", "賢姐/red"]
+                    },
+                    "102/U3": {
+                        "英淳": ["玉伶", "瑋瑜", "小南/red"]
+                    }
+                },
+
+                "2025/12/11": {
+                    "101/U3": {
+                        "美靜": ["夢萍", "小棻", "傑哥"]
+                    },
+                    "102/U4": {
+                        "芊芊": ["玉伶", "小雨", "怡婷/red"]
+                    }
+                },
+
+                "2025/12/17": {
+                    "101/U2": {
+                        "方盈": ["小棻", "瑋瑜", "賢姐/red"]
+                    },
+                    "102/U1": {
+                        "珍華": ["芊芊", "夢萍", "小南/red"]
+                    }
+                }
+            };
+
+            // ==================== 3. JavaScript 邏輯 ====================
+
+            // --- Tab 切換功能 ---
+            function openTab(evt, tabName) {
+                // 隱藏所有分頁內容
+                document.querySelectorAll('.tab-content').forEach(tab => {
+                    tab.style.display = 'none';
+                    tab.classList.remove('active');
+                });
+
+                // 移除所有按鈕的 active 狀態
+                document.querySelectorAll('.tab-button').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+
+                // 顯示目前的分頁並設定 active 狀態
+                document.getElementById(tabName).style.display = 'block';
+                document.getElementById(tabName).classList.add('active');
+                evt.currentTarget.classList.add('active');
+            }
+
+            // --- Left Column Toggle ---
+            function toggleLeftColumn(event) {
+                const button = event.target;
+                const leftColumn = button.parentElement;
+                leftColumn.classList.toggle('collapsed');
+
+                if (leftColumn.classList.contains('collapsed')) {
+                    button.textContent = '+';
+                } else {
+                    button.textContent = '-';
+                }
+            }
+
+            // --- 姓名與顏色解析函式 ---
+            function parseNameAndColor(inputString) {
+                if (typeof inputString === 'string' && inputString.includes('/')) {
+                    const parts = inputString.split('/');
+                    return { name: parts[0], color: parts[1] };
+                }
+                return { name: inputString, color: null };
+            }                        
+
+            // --- 填充選單功能 ---
+            function populateDropdowns() {
+                const allNames = new Set();
+
+                // 從 classesDB 提取主講與助教姓名
+                for (const date in classesDB) {
+                    const classes = classesDB[date];
+                    for (const className in classes) {
+                        const course = classes[className];
+                        for (const speaker in course) {
+                            allNames.add(parseNameAndColor(speaker).name); // 添加主講 (純淨版)
+                            course[speaker].forEach(ta => allNames.add(parseNameAndColor(ta).name)); // 添加助教 (純淨版)
+                        }
+                    }
+                }
+
+                // 使用 localeCompare 進行中文排序
+                const sortedNames = Array.from(allNames).sort((a, b) => a.localeCompare(b, 'zh-Hant'));
+
+                const personSelect = document.getElementById('person-select');
+                personSelect.innerHTML = ''; // 清空舊選項
+
+                sortedNames.forEach(name => {
+                    const option = document.createElement('option');
+                    option.value = name;
+                    option.textContent = name;
+                    personSelect.appendChild(option);
+                });
+
+                // 為了讓頁面更完整，也填充其他下拉選單
+                // 填充班級選單
+                const classSelect = document.getElementById('class-select');
+                classSelect.innerHTML = ''; // 清空
+
+                // 添加 "全選" 選項
+                const allOption = document.createElement('option');
+                allOption.value = 'all';
+                allOption.textContent = '全選';
+                classSelect.appendChild(allOption);
+
+                // 提取所有班級 ID 並排序
+                const classIds = teacherDB.map(item => Object.keys(item)[0]).sort();
+
+                // 添加各班級選項並預設選中
+                classIds.forEach(classId => {
+                    const option = document.createElement('option');
+                    option.value = classId;
+                    option.textContent = classId;
+                    option.selected = true; // 預設選擇所有班級
+                    classSelect.appendChild(option);
+                });
+
+
+                // 填充統計選單 (這裡我們也用人名，可以根據需求更改)
+                const statsSelect = document.getElementById('stats-select');
+                statsSelect.innerHTML = '';
+                sortedNames.forEach(name => {
+                    const option = document.createElement('option');
+                    option.value = name;
+                    option.textContent = name;
+                    statsSelect.appendChild(option);
+                });
+            }
+
+            // --- 課表更新函式 ---
+
+            // 日期格式化輔助函式 (例如 "2025/09/05" -> "9/5 (五)")
+            function formatHeaderDate(dateStr) {
+                const date = new Date(dateStr);
+                const dayOfWeek = ['日', '一', '二', '三', '四', '五', '六'][date.getDay()];
+                return `${date.getMonth() + 1}/${date.getDate()} (${dayOfWeek})`;
+            }
+
+            // 單元顏色輔助函式
+            function getUnitStyle(unit) {
+                const styles = {
+                    'U1': { background: '#E0F7FA', color: '#00796B', name: '海洋藍' },
+                    'U2': { background: '#E8F5E9', color: '#2E7D32', name: '森林綠' },
+                    'U3': { background: '#FFFDE7', color: '#F9A825', name: '暖陽黃' },
+                    'U4': { background: '#FCE4EC', color: '#C2185B', name: '櫻花粉' }
+                };
+                return styles[unit] || { background: '#F5F5F5', color: '#333', name: '預設灰' };
+            }
+
+                // 同步化表格欄位寬度
+                function synchronizeTableWidths() {
+                    const tables = document.querySelectorAll('#ClassSchedule .data-table');
+                    if (tables.length === 0) return;
+
+                    const maxWidths = [];
+                    const MAX_DATE_COL_WIDTH = 180; // 新增：設定日期欄位的最大寬度上限 (像素)
+
+                    // 步驟 1: 計算每一縱列的最大寬度，同時考慮上限
+                    tables.forEach(table => {
+                        // 暫時重設樣式以取得自然寬度
+                        table.style.tableLayout = 'auto';
+                        const rows = table.querySelectorAll('tr');
+                        rows.forEach(row => {
+                            const cells = row.querySelectorAll('th, td');
+                            cells.forEach((cell, i) => {
+                                let currentMaxWidth = Math.max(maxWidths[i] || 0, cell.offsetWidth);
+
+                                // 只對日期欄位 (i > 0) 應用最大寬度限制
+                                if (i > 0) {
+                                    currentMaxWidth = Math.min(currentMaxWidth, MAX_DATE_COL_WIDTH);
+                                }
+                                maxWidths[i] = currentMaxWidth;
+                            });
+                        });
+                    });
+
+                    // 步驟 2: 將計算出的寬度應用到所有表格
+                    tables.forEach(table => {
+                        table.style.tableLayout = 'fixed'; // 設定為固定佈局
+                        const headerCells = table.querySelectorAll('thead th');
+                        headerCells.forEach((cell, i) => {
+                            if (maxWidths[i]) {
+                                cell.style.width = `${maxWidths[i]}px`;
+                            }
+                        });
+                    });
+                }
+
+                function updateClassSchedule() {
+                    const select = document.getElementById('class-select');
+                    const rightColumn = document.querySelector('#ClassSchedule .right-column');
+
+                    // 保留 h3 標題，清空其餘內容
+                    const h3 = rightColumn.querySelector('h3');
+                    rightColumn.innerHTML = '';
+                    rightColumn.prepend(h3);
+
+                    let selectedClasses = Array.from(select.selectedOptions).map(option => option.value);
+
+                    // 如果選擇了 "全選" 或沒有選擇任何項目（預設狀態），則顯示所有班級
+                    if (selectedClasses.includes('all') || selectedClasses.length === 0) {
+                        selectedClasses = teacherDB.map(item => Object.keys(item)[0]);
+                    }
+
+                    if (selectedClasses.length === 0) {
+                            const p = document.createElement('p');
+                            p.textContent = '請在左側選擇班級以顯示課表。';
+                            rightColumn.appendChild(p);
+                            return;
+                    }
+
+                    // 1. 預處理 classesDB，將其結構轉換為以班級為中心
+                    const scheduleByClass = {};
+                    for (const date in classesDB) {
+                        for (const classUnitKey in classesDB[date]) {
+                            const [classId, unit] = classUnitKey.split('/');
+                            if (!scheduleByClass[classId]) {
+                                scheduleByClass[classId] = {};
+                            }
+                            const courseInfo = classesDB[date][classUnitKey];
+                            const speaker = Object.keys(courseInfo)[0];
+                            const tas = courseInfo[speaker];
+
+                            // 處理同一天有多堂課的情況
+                            if (!scheduleByClass[classId][date]) {
+                                scheduleByClass[classId][date] = [];
+                            }
+                            scheduleByClass[classId][date].push({ unit, speaker, tas });
+                        }
+                    }
+
+                    // 2. 根據班級的課程日期進行分組
+                    const groupedByDates = {};
+                    selectedClasses.forEach(classId => {
+                        if (scheduleByClass[classId]) {
+                            const dates = Object.keys(scheduleByClass[classId]).sort();
+                            const dateKey = JSON.stringify(dates); // 使用日期的 JSON 字串作為 key
+                            if (!groupedByDates[dateKey]) {
+                                groupedByDates[dateKey] = [];
+                            }
+                            groupedByDates[dateKey].push(classId);
+                        }
+                    });
+
+                    // 根據年級由大到小排序 table 的 key
+                    const sortedDateKeys = Object.keys(groupedByDates).sort((a, b) => {
+                        const classA = groupedByDates[a][0]; 
+                        const classB = groupedByDates[b][0];
+                        return parseInt(classB.charAt(0)) - parseInt(classA.charAt(0));
+                    });
+
+                    // 3. 為每個分組生成一個 table (使用排序後的 keys)
+                    sortedDateKeys.forEach((dateKey, index) => {
+                        const classIds = groupedByDates[dateKey].sort(); // 班級由小到大排序
+                        const dates = JSON.parse(dateKey);
+
+                        const table = document.createElement('table');
+                        table.className = 'data-table';
+
+                        // 建立表頭
+                        const thead = table.createTHead();
+                        const headerRow = thead.insertRow();
+
+                        // 建立班級表頭 (使用 <th>)
+                        const classHeader = document.createElement('th');
+                        classHeader.textContent = '班級';
+                        headerRow.appendChild(classHeader);
+
+                        // 建立日期表頭 (使用 <th>)
+                        dates.forEach(date => {
+                            const dateHeader = document.createElement('th');
+                            dateHeader.textContent = formatHeaderDate(date);
+                            headerRow.appendChild(dateHeader);
+                        });
+
+                        // 建立表身
+                        const tbody = table.createTBody();
+                        classIds.forEach(classId => {
+                            const teacherName = teacherDB.find(item => item[classId])[classId];
+                            const row = tbody.insertRow();
+
+                            const classCell = row.insertCell();
+                            classCell.innerHTML = `${classId}<br>${teacherName}`;
+
+                            dates.forEach(date => {
+                                const cell = row.insertCell();
+                                const daySchedule = scheduleByClass[classId][date];
+                                if (daySchedule) {
+                                    cell.style.textAlign = 'center';
+                                    cell.innerHTML = daySchedule.map(course => {
+                                        const style = getUnitStyle(course.unit);
+                                        const unitHtml = `<strong style="display: inline-block; padding: 2px 5px; border-radius: 4px; background-color: ${style.background}; color: ${style.color};">${course.unit}</strong>`;
+
+                                        const speakerInfo = parseNameAndColor(course.speaker);
+                                        const speakerStyle = speakerInfo.color ? ` style="color: ${speakerInfo.color};"` : '';
+                                        const speakerHtml = `<span class="name-highlight"${speakerStyle}>${speakerInfo.name}</span>`;
+
+                                        const tasHtml = course.tas.map(ta => {
+                                            const taInfo = parseNameAndColor(ta);
+                                            const taStyle = taInfo.color ? ` style="color: ${taInfo.color};"` : '';
+                                            return `<span class="name-highlight"${taStyle}>${taInfo.name}</span>`;
+                                        }).join(' ');
+
+                                        return `${unitHtml}<br>${speakerHtml}<br>${tasHtml}`;
+                                    }).join('<br><br>');
+                                }
+                            });
+                        });
+
+                        rightColumn.appendChild(table);
+
+                        // 如果不是最後一個 table，則添加間隔
+                        if (index < sortedDateKeys.length - 1) {
+                            const spacer = document.createElement('div');
+                            spacer.style.height = '20px';
+                            rightColumn.appendChild(spacer);
+                        }
+                    });
+
+                    // 最後，同步化所有表格的寬度
+                    synchronizeTableWidths();
+                }
+
+                // --- 個人課表更新函式 ---
+
+                // 判斷日期狀態 (過去/本週/未來)
+                function getDateStatus(dateStr) {
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0); // 設定為今天凌晨
+
+                    const eventDate = new Date(dateStr);
+                    eventDate.setHours(0, 0, 0, 0);
+
+                    // 判斷是否為過去
+                    if (eventDate < today) {
+                        return 'past';
+                    }
+
+                    // 判斷是否為本週
+                    const startOfWeek = new Date(today);
+                    startOfWeek.setDate(today.getDate() - today.getDay()); // 假設週日為一週的開始
+                    const endOfWeek = new Date(startOfWeek);
+                    endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+                    if (eventDate >= startOfWeek && eventDate <= endOfWeek) {
+                        return 'present';
+                    }
+
+                    // 剩下的就是未來
+                    return 'future';
+                }
+
+                function updatePersonalSchedule() {
+                    const select = document.getElementById('person-select');
+                    const selectedNames = Array.from(select.selectedOptions).map(option => option.value);
+                    const tbody = document.getElementById('personal-schedule-body');
+                    const h3 = document.querySelector('#PersonalSchedule .right-column h3');
+                    tbody.innerHTML = ''; // 清空舊內容
+
+                    if (selectedNames.length === 0) {
+                            tbody.innerHTML = '<tr><td colspan="4">請在左側選擇人名以顯示課表。</td></tr>';
+                            h3.textContent = '個人課表';
+                            return;
+                    }
+
+                    h3.textContent = selectedNames.join(', ') + '課表';
+
+                    let personSchedule = [];
+
+                    // 1. 遍歷 DB 收集所有相關課程
+                    for (const date in classesDB) {
+                        for (const classUnitKey in classesDB[date]) {
+                            const [classId, unit] = classUnitKey.split('/');
+                            const courseInfo = classesDB[date][classUnitKey];
+
+                            for (const speakerWithColor in courseInfo) {
+                                const speakerInfo = parseNameAndColor(speakerWithColor);
+                                const tasWithColor = courseInfo[speakerWithColor];
+
+                                // 檢查主講
+                                if (selectedNames.includes(speakerInfo.name)) {
+                                    personSchedule.push({ date, classId, unit, role: '主講' });
+                                }
+
+                                // 檢查助教
+                                tasWithColor.forEach(taWithColor => {
+                                    const taInfo = parseNameAndColor(taWithColor);
+                                    if (selectedNames.includes(taInfo.name)) {
+                                        personSchedule.push({ date, classId, unit, role: '助教' });
+                                    }
+                                });
+                            }
+                        }
+                    }
+
+                    // 2. 按日期排序
+                    personSchedule.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+                    // 3. 渲染表格
+                            if (personSchedule.length === 0) {
+                                tbody.innerHTML = '<tr><td colspan="4">所選人名暫無課程資料。</td></tr>';
+                            } else {
+                                personSchedule.forEach(item => {
+                                    const row = tbody.insertRow();
+                                    const dateStatus = getDateStatus(item.date);
+
+                                    // 根據日期狀態應用樣式
+                                    if (dateStatus === 'past') {
+                                        row.style.color = '#999'; // 灰色
+                                    } else if (dateStatus === 'present') {
+                                        row.style.fontWeight = 'bold';
+                                        row.style.backgroundColor = '#FFFDE7'; // 暖黃色
+                                    }
+
+                                    let roleText = item.role;
+                                    if (item.role === '主講') {
+                                        roleText = '🎤 ' + item.role;
+                                    } else if (item.role === '助教') {
+                                        roleText = item.role + ' 💪';
+                                    }
+
+                                    row.insertCell(0).textContent = formatHeaderDate(item.date);
+                                    row.insertCell(1).textContent = item.classId;
+                                    row.insertCell(2).textContent = item.unit;
+                                    row.insertCell(3).textContent = roleText;
+                                });
+                            }
+                }
+
+                // --- Global Chart Instances ---
+                let barChartInstance = null;
+                let pieChartInstance = null;
+
+                // --- Data Calculation ---
+                function calculateAllStats() {
+                    const stats = {};
+
+                    // Initialize stats for all known names to ensure everyone appears, even with 0 contributions
+                    const allNames = new Set();
+                    for (const date in classesDB) {
+                        const classes = classesDB[date];
+                        for (const className in classes) {
+                            const course = classes[className];
+                            for (const speaker in course) {
+                                allNames.add(parseNameAndColor(speaker).name);
+                                course[speaker].forEach(ta => allNames.add(parseNameAndColor(ta).name));
+                            }
+                        }
+                    }
+
+                    allNames.forEach(name => {
+                        stats[name] = {
+                            speakerCount: 0,
+                            taCount: 0,
+                            unitCounts: { 'U1': 0, 'U2': 0, 'U3': 0, 'U4': 0 }
+                        };
+                    });
+
+                    // Iterate through the DB to populate the stats
+                    for (const date in classesDB) {
+                        for (const classUnitKey in classesDB[date]) {
+                            const [classId, unit] = classUnitKey.split('/');
+                            const courseInfo = classesDB[date][classUnitKey];
+
+                            for (const speakerWithColor in courseInfo) {
+                                const speakerInfo = parseNameAndColor(speakerWithColor);
+                                const tasWithColor = courseInfo[speakerWithColor];
+
+                                // Process speaker
+                                if (stats[speakerInfo.name]) {
+                                    stats[speakerInfo.name].speakerCount++;
+                                    if (stats[speakerInfo.name].unitCounts[unit] !== undefined) {
+                                        stats[speakerInfo.name].unitCounts[unit]++;
+                                    }
+                                }
+
+                                // Process TAs
+                                tasWithColor.forEach(taWithColor => {
+                                    const taInfo = parseNameAndColor(taWithColor);
+                                    if (stats[taInfo.name]) {
+                                        stats[taInfo.name].taCount++;
+                                        if (stats[taInfo.name].unitCounts[unit] !== undefined) {
+                                            stats[taInfo.name].unitCounts[unit]++;
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    }
+                    // Convert the stats object to an array and sort by total contributions
+                    return Object.entries(stats)
+                                    .map(([name, data]) => ({ name, ...data }))
+                                    .sort((a, b) => (b.speakerCount + b.taCount) - (a.speakerCount + a.taCount));
+                }
+
+
+                // --- Chart Generation ---
+                function generateStatistics() {
+                    const select = document.getElementById('stats-select');
+                    const selectedNames = Array.from(select.selectedOptions).map(option => option.value);
+                    const allStats = calculateAllStats();
+
+                    const pieChartContainer = document.getElementById('pie-chart-container');
+
+                    let statsToDisplay;
+
+                    if (selectedNames.length > 0) {
+                        // Filter for selected names
+                        statsToDisplay = allStats.filter(person => selectedNames.includes(person.name));
+                        pieChartContainer.style.display = 'block';
+                    } else {
+                        // Default: show all stats
+                        statsToDisplay = allStats;
+                        pieChartContainer.style.display = 'none';
+                    }
+
+                    // --- Bar Chart ---
+                    if (barChartInstance) {
+                        barChartInstance.destroy();
+                    }
+                    const barCtx = document.getElementById('barChart').getContext('2d');
+                    barChartInstance = new Chart(barCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: statsToDisplay.map(s => s.name),
+                            datasets: [
+                                {
+                                    label: '主講次數',
+                                    data: statsToDisplay.map(s => s.speakerCount),
+                                    backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                                    borderColor: 'rgba(54, 162, 235, 1)',
+                                    borderWidth: 1
+                                },
+                                {
+                                    label: '助教次數',
+                                    data: statsToDisplay.map(s => s.taCount),
+                                    backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                                    borderColor: 'rgba(255, 99, 132, 1)',
+                                    borderWidth: 1
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        stepSize: 1 // Ensure y-axis has integer steps
+                                    }
+                                }
+                            },
+                            plugins: {
+                                datalabels: {
+                                    anchor: 'end',
+                                    align: 'top',
+                                    formatter: (value) => value > 0 ? value : '', // Don't show '0' labels
+                                    color: '#333',
+                                    font: {
+                                        weight: 'bold'
+                                    }
+                                },
+                                legend: {
+                                    position: 'top',
+                                },
+                                title: {
+                                    display: true,
+                                    text: '本學期主講與助教次數統計(包含未完成)'
+                                }
+                            }
+                        },
+                        plugins: [ChartDataLabels] // Register the plugin globally
+                    });
+
+                    // --- Pie Chart (only if names are selected) ---
+                    if (pieChartInstance) {
+                        pieChartInstance.destroy();
+                    }
+                    if (selectedNames.length > 0) {
+                        const pieCtx = document.getElementById('pieChart').getContext('2d');
+
+                        const totalUnitCounts = { 'U1': 0, 'U2': 0, 'U3': 0, 'U4': 0 };
+                        statsToDisplay.forEach(person => {
+                            for (const unit in person.unitCounts) {
+                                totalUnitCounts[unit] += person.unitCounts[unit];
+                            }
+                        });
+
+                        const unitData = Object.values(totalUnitCounts);
+                        const unitLabels = Object.keys(totalUnitCounts);
+
+                        // Filter out units with 0 count to avoid cluttering the pie chart
+                        const filteredUnitData = [];
+                        const filteredUnitLabels = [];
+                        const filteredUnitColors = [];
+
+                        unitData.forEach((count, index) => {
+                            if (count > 0) {
+                                filteredUnitData.push(count);
+                                const unit = unitLabels[index];
+                                filteredUnitLabels.push(unit);
+                                filteredUnitColors.push(getUnitStyle(unit).background);
+                            }
+                        });
+
+                        pieChartInstance = new Chart(pieCtx, {
+                            type: 'pie',
+                            data: {
+                                labels: filteredUnitLabels,
+                                datasets: [{
+                                    data: filteredUnitData,
+                                    backgroundColor: filteredUnitColors,
+                                    borderColor: '#fff',
+                                    borderWidth: 2
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: {
+                                        position: 'top',
+                                    },
+                                    title: {
+                                        display: true,
+                                        text: `${selectedNames.join(', ')} 單元分佈`
+                                    },
+                                    datalabels: {
+                                        formatter: (value, ctx) => {
+                                            const sum = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                                            if (sum === 0) return '0%';
+                                            const percentage = (value / sum * 100).toFixed(1) + '%';
+                                            return percentage;
+                                        },
+                                        color: '#000',
+                                    }
+                                }
+                            },
+                            plugins: [ChartDataLabels]
+                        });
+                    }
+                }
+
+                // --- 頁面啟動 ---
+                window.onload = function() {
+                    populateDropdowns(); // 初始化所有選單
+                    updateClassSchedule(); // 預設載入 '班級課表' 分頁的內容
+                    generateStatistics(); // 預設載入統計圖表
+
+                    // --- 姓名高亮事件監聽 ---
+                    const classScheduleTab = document.getElementById('ClassSchedule');
+                    const rightColumn = classScheduleTab.querySelector('.right-column');
+
+                    rightColumn.addEventListener('click', function(event) {
+                        const target = event.target;
+
+                        // 檢查點擊的是否是帶有 'name-highlight' class 的 span
+                        if (target.classList.contains('name-highlight')) {
+                            const clickedName = target.textContent;
+                            const isAlreadyHighlighted = target.classList.contains('highlighted');
+
+                            // 1. 清除所有現有的高亮
+                            const allNames = rightColumn.querySelectorAll('.name-highlight');
+                            allNames.forEach(nameSpan => {
+                                nameSpan.classList.remove('highlighted');
+                            });
+
+                            // 2. 如果點擊的不是已高亮的，則應用新的高亮
+                            if (!isAlreadyHighlighted) {
+                                allNames.forEach(nameSpan => {
+                                    if (nameSpan.textContent === clickedName) {
+                                        nameSpan.classList.add('highlighted');
+                                    }
+                                });
+                            }
+                        }
+                    });
+                };
+    </script>
+</body>
+</html>
