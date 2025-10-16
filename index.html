@@ -181,6 +181,10 @@
                         <button class="toggle-btn" onclick="toggleLeftColumn(event)">-</button>
                         <div class="left-column-content">
                             <label for="class-select" class="select-label">選擇班級 (可多選):</label>
+                            <div style="margin-bottom: 5px;">
+                                <button onclick="selectAllClasses(true)" style="padding: 2px 5px; font-size: 12px; margin-right: 5px; cursor: pointer;">全選</button>
+                                <button onclick="selectAllClasses(false)" style="padding: 2px 5px; font-size: 12px; margin-right: 5px; cursor: pointer;">全不選</button>
+                            </div>
                             <select id="class-select" class="multi-select" multiple size="10" onchange="updateClassSchedule()">
                             </select>
                         </div>
@@ -564,7 +568,16 @@
                     return { name: parts[0], color: parts[1] };
                 }
                 return { name: inputString, color: null };
-            }                        
+            }
+
+            function selectAllClasses(select) {
+                const classSelect = document.getElementById('class-select');
+                const options = classSelect.options;
+                for (let i = 0; i < options.length; i++) {
+                    options[i].selected = select;
+                }
+                updateClassSchedule();
+            }
 
             // --- 填充選單功能 ---
             function populateDropdowns() {
@@ -599,12 +612,6 @@
                 // 填充班級選單
                 const classSelect = document.getElementById('class-select');
                 classSelect.innerHTML = ''; // 清空
-
-                // 添加 "全選" 選項
-                const allOption = document.createElement('option');
-                allOption.value = 'all';
-                allOption.textContent = '全選';
-                classSelect.appendChild(allOption);
 
                 // 提取所有班級 ID 並排序
                 const classIds = teacherDB.map(item => Object.keys(item)[0]).sort();
