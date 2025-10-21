@@ -229,10 +229,11 @@
                                     <th>班級</th>
                                     <th>單元</th>
                                     <th>角色</th>
+                                    <th>夥伴</th>
                                 </tr>
                             </thead>
                             <tbody id="personal-schedule-body">
-                                <tr><td colspan="4">請在左側選擇人名以顯示課表。</td></tr>
+                                <tr><td colspan="5">請在左側選擇人名以顯示課表。</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -869,7 +870,7 @@
                     tbody.innerHTML = ''; // 清空舊內容
 
                     if (selectedNames.length === 0) {
-                            tbody.innerHTML = '<tr><td colspan="4">請在左側選擇人名以顯示課表。</td></tr>';
+                            tbody.innerHTML = '<tr><td colspan="5">請在左側選擇人名以顯示課表。</td></tr>';
                             h3.textContent = '個人課表';
                             return;
                     }
@@ -887,17 +888,21 @@
                             for (const speakerWithColor in courseInfo) {
                                 const speakerInfo = parseNameAndColor(speakerWithColor);
                                 const tasWithColor = courseInfo[speakerWithColor];
+                                const taNames = tasWithColor.map(ta => parseNameAndColor(ta).name);
+                                const allParticipants = [speakerInfo.name, ...taNames];
 
                                 // 檢查主講
                                 if (selectedNames.includes(speakerInfo.name)) {
-                                    personSchedule.push({ date, classId, unit, role: '主講' });
+                                    const partners = allParticipants.filter(p => p !== speakerInfo.name);
+                                    personSchedule.push({ date, classId, unit, role: '主講', partners });
                                 }
 
                                 // 檢查助教
                                 tasWithColor.forEach(taWithColor => {
                                     const taInfo = parseNameAndColor(taWithColor);
                                     if (selectedNames.includes(taInfo.name)) {
-                                        personSchedule.push({ date, classId, unit, role: '助教' });
+                                        const partners = allParticipants.filter(p => p !== taInfo.name);
+                                        personSchedule.push({ date, classId, unit, role: '助教', partners });
                                     }
                                 });
                             }
@@ -909,7 +914,7 @@
 
                     // 3. 渲染表格
                             if (personSchedule.length === 0) {
-                                tbody.innerHTML = '<tr><td colspan="4">所選人名暫無課程資料。</td></tr>';
+                                tbody.innerHTML = '<tr><td colspan="5">所選人名暫無課程資料。</td></tr>';
                             } else {
                                 personSchedule.forEach(item => {
                                     const row = tbody.insertRow();
@@ -923,17 +928,25 @@
                                         row.style.backgroundColor = '#FFFDE7'; // 暖黃色
                                     }
 
-                                    let roleText = item.role;
-                                    if (item.role === '主講') {
-                                        roleText = '🎤 ' + item.role;
-                                    } else if (item.role === '助教') {
-                                        roleText = item.role + ' 💪';
-                                    }
-
                                     row.insertCell(0).textContent = formatHeaderDate(item.date);
                                     row.insertCell(1).textContent = item.classId;
                                     row.insertCell(2).textContent = item.unit;
-                                    row.insertCell(3).textContent = roleText;
+                                    const roleCell = row.insertCell(3);
+                                    row.insertCell(4).textContent = item.partners.join(', ');
+
+                                    // 設定角色欄位的內容與樣式
+                                    if (item.role === '主講') {
+                                        const roleContent = '🎤 ' + item.role;
+                                        if (dateStatus !== 'past') {
+                                            roleCell.innerHTML = `<strong style="color: blue;">${roleContent}</strong>`;
+                                        } else {
+                                            roleCell.textContent = roleContent;
+                                        }
+                                    } else if (item.role === '助教') {
+                                        roleCell.textContent = item.role + ' 💪';
+                                    } else {
+                                        roleCell.textContent = item.role;
+                                    }
                                 });
                             }
                 }
