@@ -999,28 +999,37 @@
                     }
                     // Convert the stats object to an array and sort by total contributions
                     return Object.entries(stats)
-                                    .map(([name, data]) => ({ name, ...data }))
-                                    .sort((a, b) => (b.speakerCount + b.taCount) - (a.speakerCount + a.taCount));
+                                    .map(([name, data]) => ({ name, ...data }));
                 }
 
 
                 // --- Chart Generation ---
                 function generateStatistics() {
                     const select = document.getElementById('stats-select');
-                    const selectedNames = Array.from(select.selectedOptions).map(option => option.value);
-                    const allStats = calculateAllStats();
-
                     const pieChartContainer = document.getElementById('pie-chart-container');
+                    const selectedNames = Array.from(select.selectedOptions).map(option => option.value);
+                    const allStatsUnsorted = calculateAllStats();
 
-                    let statsToDisplay;
+                    const nameToStatsMap = new Map(allStatsUnsorted.map(s => [s.name, s]));
+                    const dropdownOrderNames = Array.from(select.options).map(option => option.value);
+
+                    let statsToDisplay = [];
 
                     if (selectedNames.length > 0) {
-                        // Filter for selected names
-                        statsToDisplay = allStats.filter(person => selectedNames.includes(person.name));
+                        // Filter and order by selected names from dropdown
+                        dropdownOrderNames.forEach(name => {
+                            if (selectedNames.includes(name) && nameToStatsMap.has(name)) {
+                                statsToDisplay.push(nameToStatsMap.get(name));
+                            }
+                        });
                         pieChartContainer.style.display = 'block';
                     } else {
-                        // Default: show all stats
-                        statsToDisplay = allStats;
+                        // Default: show all stats in dropdown order
+                        dropdownOrderNames.forEach(name => {
+                            if (nameToStatsMap.has(name)) {
+                                statsToDisplay.push(nameToStatsMap.get(name));
+                            }
+                        });
                         pieChartContainer.style.display = 'none';
                     }
 
@@ -1040,7 +1049,7 @@
                     barChartInstance = new Chart(barCtx, {
                         type: 'bar',
                         data: {
-                            labels: statsToDisplay.map(s => s.name),
+                            labels: statsToDisplay.map(s => `${s.name} (${s.speakerCount + s.taCount})`),
                             datasets: [
                                 {
                                     label: '主講次數',
