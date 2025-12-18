@@ -112,6 +112,13 @@
             overflow-x: auto; /* 新增：當內容過寬時，顯示水平滾動條 */
         }
 
+        /* 佈告欄專用：當沒有左側欄時使右側寬度更合理 */
+        .right-column.full-width {
+            padding-left: 20px;
+            padding-right: 20px;
+            overflow-x: auto;
+        }
+
         /* --- 選單樣式 --- */
         .select-label {
             display: block;
@@ -167,13 +174,14 @@
         </head>
         <body>
 
-        <div style="text-align: center; font-weight: bold; color: #008000; font-size: 16px; margin-bottom: 20px;">晨光天文114上<br/>Last update: 2025.10.20</div>
+        <div style="text-align: center; font-weight: bold; color: #008000; font-size: 16px; margin-bottom: 20px;">晨光天文114上<br/>Last update: 2025.12.10</div>
         <div class="container">
 
             <div class="tabs">
                 <button class="tab-button active" onclick="openTab(event, 'ClassSchedule')">班級課表</button>
                 <button class="tab-button" onclick="openTab(event, 'PersonalSchedule')">個人課表</button>
                 <button class="tab-button" onclick="openTab(event, 'Statistics')">統計圖</button>
+                <button class="tab-button" onclick="openTab(event, 'Bulletin')">佈告欄</button>
             </div>
 
             <div id="ClassSchedule" class="tab-content active">
@@ -264,6 +272,26 @@
                 </div>
             </div>
 
+            <div id="Bulletin" class="tab-content">
+                <div class="right-column full-width">
+                    <h3>佈告欄</h3>
+                    <table class="data-table" id="bulletin-table">
+                        <thead>
+                            <tr>
+                                <th>日期</th>
+                                <th>時間</th>
+                                <th>地點</th>
+                                <th>活動內容</th>
+                                <th>備注</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bulletin-body">
+                            <tr><td colspan="5">目前沒有公告。</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
         </div>
 
         <script>
@@ -284,7 +312,27 @@
               {"602": "蔡銘益"},
               {"603": "楊淳棻"}
             ];
-
+            // 佈告欄與活動日期
+            const bulletinDB = {
+                "2026/01/09": {
+                    "time": "9:00 - 11:30",
+                    "location": "<a href='https://maps.app.goo.gl/LNaNLYopR1yeMz5z8'>蘭潭國小</a>",
+                    "description": "新志工培訓",
+                    "note": "暫定/red"
+                },
+                "2026/01/13": {
+                    "time": "9:00 - 11:30",
+                    "location": "台南市<a href='https://maps.app.goo.gl/FLWgnQsnY8fDYfau9'>復興國小</a>",
+                    "description": "新志工培訓",
+                    "note": "暫定/red"
+                },
+                "2026/01/20": {
+                    "time": "9:00 - 11:30",
+                    "location": "大Ｅ教室",
+                    "description": "試教，可錄影上傳YouTube",
+                    "note": "暫定/red"
+                },
+            }
             // 課程日期與助教對應表
             // 
             // 客製化顏色說明：
@@ -426,13 +474,13 @@
                         "小雨": ["珍華/blue", "芊芊"]
                     },
                     "302/U4": {
-                        "瑞夫": ["小棻", "健庭", "小南/red"]
+                        "瑞夫": ["小棻", "健庭"]
                     }
                 },
 
                 "2025/11/13": {
                     "301/U4": {
-                        "芊芊": ["瑋瑜/blue", "玉伶", "賢姐/red"]
+                        "芊芊": ["瑋瑜/blue", "玉伶", "英淳"]
                     },
                     "302/U3": {
                         "美靜": ["傑哥", "小棻", "怡婷/red"]
@@ -441,7 +489,7 @@
 
                 "2025/11/20": {
                     "301/U3": {
-                        "英淳": ["小雨/blue", "芊芊", "怡婷/red"]
+                        "英淳": ["小雨/blue", "方盈", "怡婷/red"]
                     },
                     "302/U2": {
                      "健庭/purple": ["美靜", "玉伶", "賢姐/red"]
@@ -450,25 +498,25 @@
 
                 "2025/11/21": {
                     "301/U2": {
-                        "健庭": ["方盈", "芊芊"]
+                        "健庭": ["傑哥", "小棻", "夢萍"]
                     },
                     "302/U1": {
-                        "珍華": ["英淳", "小南/red"]
+                        "珍華": ["英淳", "賢姐/red", "小南/red"]
                     }
                 },
 
                 "2025/12/18": {
-                    "201/U3": {
-                        "美靜": ["小棻", "玉伶", "夢萍"]
+                    "201/U2": {
+                        "健庭": ["怡婷/red", "玉伶", "夢萍"]
                     },
                     "202/U1": {
-                        "傑哥": ["瑋瑜", "英淳", "怡婷/red"]
+                        "傑哥": ["瑋瑜", "英淳"]
                     }
                 },
 
                 "2025/12/19": {
-                    "201/U2": {
-                        "健庭": ["瑋瑜", "珍華", "小南/red"]
+                    "201/U3": {
+                        "美靜": ["瑋瑜", "珍華", "小南/red"]
                     },
                     "202/U4": {
                         "瑞夫": ["英淳", "小雨"]
@@ -476,7 +524,7 @@
                 },
                 "2025/12/24": {
                     "201/U1": {
-                        "珍華": ["方盈", "芊芊", "賢姐/red"]
+                        "珍華": ["方盈", "芊芊", "玉伶"]
                     },
                     "202/U3": {
                         "英淳": ["小棻", "小雨", "瑞夫"]
@@ -485,16 +533,16 @@
 
                 "2025/12/26": {
                     "201/U4": {
-                        "瑞夫": ["珍華", "健庭", "賢姐/red"]
+                        "瑞夫": ["珍華", "健庭", "傑哥"]
                     },
                     "202/U2": {
                         "夢萍": ["玉伶", "英淳", "怡婷/red"]
                     }
                 },
 
-                "2025/12/04": {
+                "2025/11/27": {
                     "101/U4": {
-                        "芊芊": ["小棻", "玉伶", "賢姐/red"]
+                        "芊芊": ["小棻", "玉伶", "瑞夫","賢姐/red"]
                     },
                     "102/U2": {
                         "夢萍": ["傑哥", "美靜", "怡婷/red"]
@@ -503,10 +551,10 @@
 
                 "2025/12/10": {
                     "101/U1": {
-                        "傑哥": ["珍華", "小雨", "賢姐/red"]
+                        "傑哥": ["珍華", "小雨", "小棻"]
                     },
                     "102/U3": {
-                        "英淳": ["玉伶", "瑋瑜", "小南/red"]
+                        "英淳": ["美靜", "瑋瑜", "小南/red"]
                     }
                 },
 
@@ -515,13 +563,13 @@
                         "美靜": ["夢萍", "小棻", "傑哥"]
                     },
                     "102/U4": {
-                        "芊芊": ["玉伶", "小雨", "怡婷/red"]
+                        "芊芊": ["小南/red", "小雨", "怡婷/red"]
                     }
                 },
 
                 "2025/12/17": {
                     "101/U2": {
-                        "方盈": ["小棻", "瑋瑜", "賢姐/red"]
+                        "方盈": ["美靜", "瑋瑜", "英淳"]
                     },
                     "102/U1": {
                         "珍華": ["芊芊", "夢萍", "小南/red"]
@@ -661,7 +709,7 @@
 
                 // 同步化表格欄位寬度
                 function synchronizeTableWidths() {
-                    const tables = document.querySelectorAll('#ClassSchedule .data-table');
+                    const tables = document.querySelectorAll('.data-table');
                     if (tables.length === 0) return;
 
                     const maxWidths = [];
@@ -1183,11 +1231,90 @@
                     }
                 }
 
+                // --- Bulletin helpers & rendering ---
+                function computeDurationText(timeStr) {
+                    try {
+                        if (typeof timeStr !== 'string') return null;
+                        const match = timeStr.match(/(\d{1,2}:\d{2})\s*[-–—]\s*(\d{1,2}:\d{2})/);
+                        if (!match) return null;
+                        const toMinutes = t => {
+                            const [hh, mm] = t.split(':').map(Number);
+                            return hh * 60 + mm;
+                        };
+                        const start = toMinutes(match[1]);
+                        const end = toMinutes(match[2]);
+                        const diff = end - start;
+                        if (isNaN(diff) || diff <= 0) return null;
+                        let hours = diff / 60;
+                        // If integer, show integer; otherwise round to 1 decimal
+                        hours = Math.abs(hours - Math.round(hours)) < 0.01 ? Math.round(hours) : Math.round(hours * 10) / 10;
+                        return `(${hours}hrs)`;
+                    } catch (e) {
+                        return null; // On any exception, don't show duration
+                    }
+                }
+
+                function updateBulletin() {
+                    const tbody = document.getElementById('bulletin-body');
+                    tbody.innerHTML = '';
+
+                    const dates = Object.keys(bulletinDB).sort((a, b) => new Date(a) - new Date(b));
+                    if (dates.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="5">目前沒有公告。</td></tr>';
+                        return;
+                    }
+
+                    dates.forEach(date => {
+                        const entry = bulletinDB[date] || {};
+                        const timeStr = entry.time || '';
+                        const durationText = computeDurationText(timeStr);
+                        const timeDisplay = durationText ? `${timeStr} ${durationText}` : timeStr;
+
+                        const locationHtml = entry.location || '';
+
+                        const desc = parseNameAndColor(entry.description || '');
+                        const note = parseNameAndColor(entry.note || '');
+
+                        const tr = document.createElement('tr');
+                        if (getDateStatus(date) === 'past') {
+                            tr.style.color = '#999';
+                        }
+
+                        const tdDate = document.createElement('td'); tdDate.textContent = formatHeaderDate(date);
+                        const tdTime = document.createElement('td'); tdTime.textContent = timeDisplay;
+                        const tdLoc = document.createElement('td'); tdLoc.innerHTML = locationHtml; // allow href in location
+                        const tdDesc = document.createElement('td');
+                        if (desc.color) {
+                            tdDesc.innerHTML = `<span style="color:${desc.color};">${desc.name}</span>`;
+                        } else {
+                            tdDesc.textContent = desc.name;
+                        }
+                        const tdNote = document.createElement('td');
+                        if (note.color) {
+                            tdNote.innerHTML = `<span style="color:${note.color};">${note.name}</span>`;
+                        } else {
+                            tdNote.textContent = note.name;
+                        }
+
+                        tr.appendChild(tdDate);
+                        tr.appendChild(tdTime);
+                        tr.appendChild(tdLoc);
+                        tr.appendChild(tdDesc);
+                        tr.appendChild(tdNote);
+
+                        tbody.appendChild(tr);
+                    });
+
+                    // Keep table width consistent with others
+                    synchronizeTableWidths();
+                }
+
                 // --- 頁面啟動 ---
                 window.onload = function() {
                     populateDropdowns(); // 初始化所有選單
                     updateClassSchedule(); // 預設載入 '班級課表' 分頁的內容
                     generateStatistics(); // 預設載入統計圖表
+                    updateBulletin(); // 載入佈告欄內容
 
                     // --- 姓名高亮事件監聽 ---
                     const classScheduleTab = document.getElementById('ClassSchedule');
