@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <title>西門實小晨光天文班表查詢系統</title>
     <!-- Introduce Chart.js 和 Datalabels plugins -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -174,7 +174,7 @@
         </head>
         <body>
 
-        <div style="text-align: center; font-weight: bold; color: #008000; font-size: 16px; margin-bottom: 20px;">晨光天文114上<br/>Last update: 2025.12.10</div>
+        <div style="text-align: center; font-weight: bold; color: #008000; font-size: 16px; margin-bottom: 20px;">晨光天文114下<br/>Last update: 2026.02.03</div>
         <div class="container">
 
             <div class="tabs">
@@ -299,13 +299,13 @@
             // 班級與老師對應表
             const teacherDB = [
               {"101": "許媖華"},
-              {"102": "佳宜"},
+              {"102": "鄭佳宜"},
               {"201": "歐伶礽"},
-              {"202": "安淇"},
-              {"301": "淑莞"},
-              {"302": "伶珍"},
-              {"401": "麗萍"},
-              {"402": "郁雯"},
+              {"202": "游安淇"},
+              {"301": "陳淑莞"},
+              {"302": "魏伶珍"},
+              {"401": "王麗萍"},
+              {"402": "張郁雯"},
               {"501": "曾玉婷"},
               {"502": "鄧佳琳"},
               {"601": "盧仕純"},
@@ -316,21 +316,21 @@
             const bulletinDB = {
                 "2026/01/09": {
                     "time": "9:00 - 11:30",
-                    "location": "<a href='https://maps.app.goo.gl/LNaNLYopR1yeMz5z8'>蘭潭國小</a>",
+                    "location": "嘉義市蘭潭國小/blue",
                     "description": "新志工培訓",
-                    "note": "暫定/red"
+                    "note": "小棻,珍華/green,怡婷"
                 },
                 "2026/01/13": {
-                    "time": "9:00 - 11:30",
-                    "location": "台南市<a href='https://maps.app.goo.gl/FLWgnQsnY8fDYfau9'>復興國小</a>",
-                    "description": "新志工培訓",
-                    "note": "暫定/red"
+                    "time": "9:00 - 12:00",
+                    "location": "復興國小/blue",
+                    "description": "114下志工培訓",
+                    "note": "中午期末聚餐,討論分組及課程"
                 },
                 "2026/01/20": {
-                    "time": "9:00 - 11:30",
-                    "location": "大Ｅ教室",
-                    "description": "試教，可錄影上傳YouTube",
-                    "note": "暫定/red"
+                    "time": "13:00 - 16:00",
+                    "location": "復興國小現場試教/blue",
+                    "description": "現場試教",
+                    "note": "錄影試教，1/24前錄影上傳YouTube"
                 },
             }
             // 課程日期與助教對應表
@@ -349,233 +349,80 @@
             //   - "姓名/purple"   (紫色)
             // 
             const classesDB = {
-                "2025/09/05": {
-                    "601/U4": {
-                        "芊芊": ["瑞夫", "玉伶"]      
-                    },
-                    "602/U2": {
-                        "夢萍": ["小雨", "小棻"]
-                    },
-                    "603/U3": {
-                        "英淳": ["美靜", "傑哥"]
-                    }
+                "2026/03/05": {
+                    "401/U3": { "芊芊/cyan": ["傑哥", "美靜"] },
+                    "402/U2": { "小雨/green": ["瑋瑜", "小棻"] }
                 },
-
-                "2025/09/12": {
-                    "601/U3": {
-                        "英淳": ["美靜", "芊芊"]
-                    },
-                    "602/U1": {
-                        "小雨": ["珍華", "夢萍", "傑哥"]
-                    },
-                    "603/U2": {
-                        "方盈": ["健庭", "玉伶"]
-                    }
+                "2026/03/11": {
+                    "401/U2": { "夢萍/green": ["小雨", "珍華"] },
+                    "402/U1": { "美靜/orange": ["瑋瑜", "芊芊"] }
                 },
-
-                "2025/09/17": {
-                    "601/U1": {
-                        "小雨": ["珍華", "玉伶"]
-                    },
-                    "602/U3": {
-                        "美靜": ["夢萍", "瑋瑜", "小棻"]
-                    },
-                    "603/U4": {
-                        "芊芊": ["方盈", "傑哥"]
-                    }
+                "2026/03/12": {
+                    "401/U1": { "英淳/orange": ["傑哥", "美靜"] },
+                    "402/U3": { "方盈/cyan": ["小雨", "瑋瑜"] },
+                    "301/U1": { "怡婷/orange": ["芊芊", "方盈"] },
+                    "302/U3": { "小棻/cyan": ["夢萍", "玉伶"] }
                 },
-
-                "2025/09/25": {
-                    "601/U2": {
-                        "健庭": ["瑋瑜", "英淳"]
-                    },
-                    "602/U4": {
-                        "瑞夫": ["小雨", "美靜"]
-                    },
-                    "603/U1": {
-                        "傑哥": ["方盈", "玉伶"]
-                    }
+                "2026/03/19": {
+                    "301/U3": { "芊芊/cyan": ["怡婷", "傑哥"] },
+                    "302/U2": { "夢萍/green": ["瑋瑜", "方盈"] }
                 },
-
-                "2025/09/24": {
-                    "501/U1": {
-                        "小雨": ["玉伶", "珍華"]
-                    },
-                    "502/U3": {
-                        "美靜": ["傑哥", "瑋瑜"]
-                    }
+                "2026/03/20": {
+                    "301/U2": { "珍華/green": ["夢萍", "芊芊"] },
+                    "302/U1": { "瑞夫/orange": ["健庭", "英淳"] }
                 },
-
-                "2025/10/08": {
-                    "501/U2": {
-                        "方盈": ["瑋瑜", "瑞夫", "健庭"]
-                    },
-                    "502/U4": {
-                        "芊芊": ["玉伶", "小棻"]
-                    }
+                "2026/03/26": {
+                    "201/U1": { "怡婷/orange": ["夢萍", "玉伶"] },
+                    "202/U3": { "方盈/cyan": ["英淳", "傑哥"] }
                 },
-
-                "2025/10/15": {
-                    "501/U3": {
-                        "英淳": ["方盈/blue", "美靜/blue", "賢姐/red"]
-                    },
-                    "502/U1": {
-                        "珍華": ["傑哥/blue", "小棻", "小雨/blue"]
-                    }
+                "2026/03/27": {
+                    "201/U2": { "珍華/green": ["健庭", "小棻"] },
+                    "202/U1": { "瑞夫": ["英淳", "玉伶"] }
                 },
-
-                "2025/10/17": {
-                    "501/U4": {
-                        "瑞夫": ["瑋瑜/blue", "英淳", "小南/red"]
-                    },
-                    "502/U2": {
-                       "夢萍/purple": ["小雨", "健庭/blue"]
-                    }
+                "2026/04/02": {
+                    "201/U3": { "芊芊/cyan": ["怡婷", "小棻"] },
+                    "202/U2": { "小雨/green": ["美靜", "傑哥"] }
                 },
-
-                "2025/10/02": {
-                    "401/U3": {
-                        "英淳": ["傑哥", "美靜"]
-                    },
-                    "402/U2": {
-                        "夢萍": ["方盈", "瑋瑜", "健庭"]
-                    }
+                "2026/04/08": {
+                    "101/U2": { "珍華/green": ["瑋瑜", "小雨"] },
+                    "102/U3": { "芊芊/cyan": ["小棻", "美靜"] }
                 },
-
-                "2025/10/09": {
-                    "401/U2": {
-                        "方盈": ["小雨", "玉伶"]
-                    },
-                    "402/U4": {
-                        "芊芊": ["瑋瑜", "健庭"]
-                    }
+                "2026/04/09": {
+                    "101/U3": { "方盈/cyan": ["美靜", "玉伶"] },
+                    "102/U1": { "怡婷/orange": ["夢萍", "瑋瑜"] }
                 },
-
-                "2025/10/16": {
-                    "401/U4": {
-                        "芊芊": ["小棻", "健庭/blue"]
-                    },
-                    "402/U1": {
-                        "小雨/purple": ["夢萍/blue", "瑋瑜", "怡婷/red"]
-                    }
+                "2026/04/10": {
+                    "101/U1": { "瑞夫/orange": ["玉伶", "英淳"] },
+                    "102/U2": { "珍華/green": ["健庭", "小棻"] }
                 },
-
-                "2025/10/23": {
-                    "401/U1": {
-                        "傑哥": ["方盈", "健庭"]
-                    },
-                    "402/U3": {
-                        "美靜/purple": ["小棻/blue", "瑋瑜", "賢姐/red"]
-                    }
+                "2026/04/23": {
+                    "601/U2": { "小雨/green": ["玉伶", "英淳"] },
+                    "602/U3": { "芊芊/cyan": ["夢萍", "怡婷"] },
+                    "603/U1": { "美靜/orange": ["瑋瑜", "方盈"] }
                 },
-
-                "2025/11/07": {
-                    "301/U1": {
-                        "小雨": ["珍華/blue", "芊芊"]
-                    },
-                    "302/U4": {
-                        "瑞夫": ["小棻", "健庭"]
-                    }
+                "2026/04/29": {
+                    "601/U1": { "英淳/orange": ["珍華", "玉伶"] },
+                    "602/U2": { "夢萍/green": ["小雨", "芊芊"] },
+                    "603/U3": { "方盈/cyan": ["傑哥", "小棻"] }
                 },
-
-                "2025/11/13": {
-                    "301/U4": {
-                        "芊芊": ["瑋瑜/blue", "玉伶", "英淳"]
-                    },
-                    "302/U3": {
-                        "美靜": ["傑哥", "小棻", "怡婷/red"]
-                    }
+                "2026/04/30": {
+                    "601/U3": { "小棻/cyan": ["英淳", "傑哥"] },
+                    "602/U1": { "美靜/orange": ["夢萍", "玉伶"] },
+                    "603/U2": { "小雨/green": ["方盈", "怡婷"] }
                 },
-
-                "2025/11/20": {
-                    "301/U3": {
-                        "英淳": ["小雨/blue", "方盈", "怡婷/red"]
-                    },
-                    "302/U2": {
-                     "健庭/purple": ["美靜", "玉伶", "賢姐/red"]
-                    }
+                "2026/05/06": {
+                    "501/U3": { "小棻/cyan": ["珍華", "玉伶"] },
+                    "502/U2": { "夢萍/green": ["小雨", "瑋瑜"] }
                 },
-
-                "2025/11/21": {
-                    "301/U2": {
-                        "健庭": ["傑哥", "小棻", "夢萍"]
-                    },
-                    "302/U1": {
-                        "珍華": ["英淳", "賢姐/red", "小南/red"]
-                    }
+                "2026/05/08": {
+                    "501/U2": { "珍華/green": ["健庭", "英淳"] },
+                    "502/U1": { "英淳/orange": ["瑞夫", "瑋瑜"] }
                 },
-
-                "2025/12/18": {
-                    "201/U2": {
-                        "健庭": ["怡婷/red", "玉伶", "夢萍"]
-                    },
-                    "202/U1": {
-                        "傑哥": ["瑋瑜", "英淳"]
-                    }
-                },
-
-                "2025/12/19": {
-                    "201/U3": {
-                        "美靜": ["瑋瑜", "珍華", "小南/red"]
-                    },
-                    "202/U4": {
-                        "瑞夫": ["英淳", "小雨"]
-                    }
-                },
-                "2025/12/24": {
-                    "201/U1": {
-                        "珍華": ["方盈", "芊芊", "玉伶"]
-                    },
-                    "202/U3": {
-                        "英淳": ["小棻", "小雨", "瑞夫"]
-                    }
-                },
-
-                "2025/12/26": {
-                    "201/U4": {
-                        "瑞夫": ["珍華", "健庭", "傑哥"]
-                    },
-                    "202/U2": {
-                        "夢萍": ["玉伶", "英淳", "怡婷/red"]
-                    }
-                },
-
-                "2025/11/27": {
-                    "101/U4": {
-                        "芊芊": ["小棻", "玉伶", "瑞夫","賢姐/red"]
-                    },
-                    "102/U2": {
-                        "夢萍": ["傑哥", "美靜", "怡婷/red"]
-                    }
-                },
-
-                "2025/12/10": {
-                    "101/U1": {
-                        "傑哥": ["珍華", "小雨", "小棻"]
-                    },
-                    "102/U3": {
-                        "英淳": ["美靜", "瑋瑜", "小南/red"]
-                    }
-                },
-
-                "2025/12/11": {
-                    "101/U3": {
-                        "美靜": ["夢萍", "小棻", "傑哥"]
-                    },
-                    "102/U4": {
-                        "芊芊": ["小南/red", "小雨", "怡婷/red"]
-                    }
-                },
-
-                "2025/12/17": {
-                    "101/U2": {
-                        "方盈": ["美靜", "瑋瑜", "英淳"]
-                    },
-                    "102/U1": {
-                        "珍華": ["芊芊", "夢萍", "小南/red"]
-                    }
+                "2026/05/13": {
+                    "501/U1": { "美靜/orange": ["珍華", "傑哥"] },
+                    "502/U3": { "小棻/cyan": ["芊芊", "方盈"] }
                 }
-            };
+                };
 
             // ==================== 3. JavaScript 邏輯 ====================
 
@@ -707,42 +554,77 @@
                 return styles[unit] || { background: '#F5F5F5', color: '#333', name: '預設灰' };
             }
 
-                // 同步化表格欄位寬度
+                // 同步化表格欄位寬度（更穩定的實作）
+                // 使用每個 cell 的 `scrollWidth` 作為內容寬度基準，並支援不同表格的列數
                 function synchronizeTableWidths() {
                     const tables = document.querySelectorAll('.data-table');
                     if (tables.length === 0) return;
 
-                    const maxWidths = [];
-                    const MAX_DATE_COL_WIDTH = 180; // 新增：設定日期欄位的最大寬度上限 (像素)
+                    // 先重設已設定的寬度，讓瀏覽器回到自適應佈局以取得正確的 scrollWidth
+                    tables.forEach(tbl => {
+                        tbl.style.tableLayout = '';
+                        tbl.querySelectorAll('th, td').forEach(cell => {
+                            cell.style.width = '';
+                        });
+                    });
 
-                    // 步驟 1: 計算每一縱列的最大寬度，同時考慮上限
+                    const maxWidths = [];
+                    const MAX_DATE_COL_WIDTH = 180; // 日期欄位的最大寬度上限 (像素)
+
+                    // 計算每個欄位需要的最大寬度
                     tables.forEach(table => {
-                        // 暫時重設樣式以取得自然寬度
-                        table.style.tableLayout = 'auto';
                         const rows = table.querySelectorAll('tr');
                         rows.forEach(row => {
                             const cells = row.querySelectorAll('th, td');
                             cells.forEach((cell, i) => {
-                                let currentMaxWidth = Math.max(maxWidths[i] || 0, cell.offsetWidth);
+                                // 使用 scrollWidth 取得內容實際所需寬度，並加一點緩衝
+                                const required = Math.ceil(cell.scrollWidth) + 12;
+                                let current = maxWidths[i] || 0;
 
-                                // 只對日期欄位 (i > 0) 應用最大寬度限制
                                 if (i > 0) {
-                                    currentMaxWidth = Math.min(currentMaxWidth, MAX_DATE_COL_WIDTH);
+                                    // 對日期/內容列套用最大寬度上限
+                                    current = Math.min(Math.max(current, required), MAX_DATE_COL_WIDTH);
+                                } else {
+                                    // 第一欄（班級）不受上限約束
+                                    current = Math.max(current, required);
                                 }
-                                maxWidths[i] = currentMaxWidth;
+                                maxWidths[i] = current;
                             });
                         });
                     });
 
-                    // 步驟 2: 將計算出的寬度應用到所有表格
+                    // 對每張表的表頭套用計算出的寬度，並使用固定佈局以維持一致性
                     tables.forEach(table => {
-                        table.style.tableLayout = 'fixed'; // 設定為固定佈局
+                        table.style.tableLayout = 'fixed';
                         const headerCells = table.querySelectorAll('thead th');
-                        headerCells.forEach((cell, i) => {
-                            if (maxWidths[i]) {
-                                cell.style.width = `${maxWidths[i]}px`;
-                            }
-                        });
+
+                        // Special handling for bulletin table: make Date/Time narrower and
+                        // allocate more space to the last column (備註).
+                        if (table.id === 'bulletin-table') {
+                            headerCells.forEach((cell, i) => {
+                                if (i === 0) { // 日期
+                                    const w = Math.min(maxWidths[i] || 80, 90);
+                                    cell.style.width = `${w}px`;
+                                } else if (i === 1) { // 時間
+                                    const w = Math.min(maxWidths[i] || 100, 120);
+                                    cell.style.width = `${w}px`;
+                                } else if (i === headerCells.length - 1) { // 備註
+                                    const w = Math.max(maxWidths[i] || 220, 220);
+                                    cell.style.width = `${w}px`;
+                                } else {
+                                    if (maxWidths[i]) cell.style.width = `${maxWidths[i]}px`;
+                                    else cell.style.width = '';
+                                }
+                            });
+                        } else {
+                            headerCells.forEach((cell, i) => {
+                                if (maxWidths[i]) {
+                                    cell.style.width = `${maxWidths[i]}px`;
+                                } else {
+                                    cell.style.width = '';
+                                }
+                            });
+                        }
                     });
                 }
 
@@ -1254,6 +1136,27 @@
                     }
                 }
 
+                // 解析支援顏色後綴 (例如: "西門國小/blue")。
+                // 僅視為純文字並做 HTML escape，若有尾綴 "/color" 會將文字包成帶色的 span
+                function parseHtmlAndColor(inputString) {
+                    if (typeof inputString !== 'string') return { html: '', text: '', color: null };
+
+                    // 分離可能在字串尾的 "/color" 標記
+                    const match = inputString.match(/([\s\S]*?)\s*\/([#A-Za-z0-9_-]+)\s*$/);
+                    let base = inputString;
+                    let color = null;
+                    if (match) {
+                        base = match[1];
+                        color = match[2];
+                    }
+
+                    // 將 base 視為純文字並 escape
+                    const text = (base || '').toString().trim();
+                    const safeHtml = text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                    const styledHtml = color ? `<span style="color:${color};">${safeHtml}</span>` : safeHtml;
+                    return { html: styledHtml, text, color };
+                }
+
                 function updateBulletin() {
                     const tbody = document.getElementById('bulletin-body');
                     tbody.innerHTML = '';
@@ -1270,10 +1173,14 @@
                         const durationText = computeDurationText(timeStr);
                         const timeDisplay = durationText ? `${timeStr} ${durationText}` : timeStr;
 
-                        const locationHtml = entry.location || '';
+                        const locationField = entry.location || '';
+                        const descField = entry.description || '';
+                        const noteField = entry.note || '';
 
-                        const desc = parseNameAndColor(entry.description || '');
-                        const note = parseNameAndColor(entry.note || '');
+                        // location 也視為純文字（HTML 不會被解析），僅支援文字與尾綴 /color
+                        const locParsed = parseHtmlAndColor(locationField);
+                        const descParsed = parseHtmlAndColor(descField);
+                        const noteParsed = parseHtmlAndColor(noteField);
 
                         const tr = document.createElement('tr');
                         if (getDateStatus(date) === 'past') {
@@ -1282,19 +1189,9 @@
 
                         const tdDate = document.createElement('td'); tdDate.textContent = formatHeaderDate(date);
                         const tdTime = document.createElement('td'); tdTime.textContent = timeDisplay;
-                        const tdLoc = document.createElement('td'); tdLoc.innerHTML = locationHtml; // allow href in location
-                        const tdDesc = document.createElement('td');
-                        if (desc.color) {
-                            tdDesc.innerHTML = `<span style="color:${desc.color};">${desc.name}</span>`;
-                        } else {
-                            tdDesc.textContent = desc.name;
-                        }
-                        const tdNote = document.createElement('td');
-                        if (note.color) {
-                            tdNote.innerHTML = `<span style="color:${note.color};">${note.name}</span>`;
-                        } else {
-                            tdNote.textContent = note.name;
-                        }
+                        const tdLoc = document.createElement('td'); tdLoc.innerHTML = locParsed.html;
+                        const tdDesc = document.createElement('td'); tdDesc.innerHTML = descParsed.html || descParsed.text;
+                        const tdNote = document.createElement('td'); tdNote.innerHTML = noteParsed.html || noteParsed.text;
 
                         tr.appendChild(tdDate);
                         tr.appendChild(tdTime);
