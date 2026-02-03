@@ -598,9 +598,18 @@
                         table.style.tableLayout = 'fixed';
                         const headerCells = table.querySelectorAll('thead th');
 
+                        // Special handling for personal schedule: equal-width columns (percent-based)
+                        if (table.id === 'personal-schedule-table') {
+                            const n = headerCells.length || 1;
+                            const base = Math.floor(100 / n);
+                            headerCells.forEach((cell, i) => {
+                                const w = (i === n - 1) ? (100 - base * (n - 1)) : base;
+                                cell.style.width = `${w}%`;
+                            });
+
                         // Special handling for bulletin table: make Date/Time narrower and
                         // allocate more space to the last column (備註).
-                        if (table.id === 'bulletin-table') {
+                        } else if (table.id === 'bulletin-table') {
                             headerCells.forEach((cell, i) => {
                                 if (i === 0) { // 日期
                                     const w = Math.min(maxWidths[i] || 80, 90);
@@ -616,6 +625,7 @@
                                     else cell.style.width = '';
                                 }
                             });
+
                         } else {
                             headerCells.forEach((cell, i) => {
                                 if (maxWidths[i]) {
